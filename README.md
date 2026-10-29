@@ -2,22 +2,46 @@
 
 **Warning:** The project is still in development and may have issues. Use at your own risk.
 
-* **[Changelog](https://github.com/jhmaverick/hestiacp-docker/blob/main/CHANGELOG.md)**
-* **[Docker Hub](https://hub.docker.com/r/jhmaverick/hestiacp)**
-* **[Github](https://github.com/jhmaverick/hestiacp-docker)**
+* **[Changes](https://github.com/dddmmm5/hestiacp-docker/blob/main/CHANGES-vs-upstream.md)**
+* **[Docker Hub](https://hub.docker.com/r/dddmmm/hestiacp)**
+* **[Github](https://github.com/dddmmm5/hestiacp-docker)**
 * **[Hestia Project](https://hestiacp.com/)**
+
+Fork of [jhmaverick/hestiacp-docker](https://github.com/jhmaverick/hestiacp-docker) running **HestiaCP 1.10.5** on **Debian 12 (bookworm)** with Apache, Nginx, PHP-FPM (PHP 5.6–8.5), PostgreSQL, Bind, Exim, Dovecot, ClamAV and SpamAssassin.
 
 
 ## How to use this image
 
 ```bash
-wget https://raw.githubusercontent.com/jhmaverick/hestiacp-docker/main/docker-compose.yml
-HSTC_HOSTNAME="example.com" docker-compose up -d
+wget https://raw.githubusercontent.com/dddmmm5/hestiacp-docker/main/docker-compose.yml
+wget https://raw.githubusercontent.com/dddmmm5/hestiacp-docker/main/.env.local -O .env
+docker compose up -d
 ```
 
-A random password will be generated for the admin user and will be displayed in the container logs on first run.
+Set your hostname in `.env` (`HSTC_HOSTNAME`) before the first start.
 
-**Note:** MariaDB runs in a separate container to optimize initialization time for the main container. 
+A random password will be generated for the admin user and will be displayed in the container logs on first run (`docker logs hestiacp`). To change it:
+
+```bash
+docker exec hestiacp /usr/local/hestia/bin/v-change-user-password admin YOURNEWPASSWORD
+```
+
+**Note:** MariaDB runs in a separate container (`mariadb:10.11`) to optimize initialization time for the main container.
+
+
+## Upgrading from 1.8.11
+
+Existing containers are migrated automatically when they are recreated with the new image (`docker compose pull && docker compose up -d`). On the first start the container:
+
+* runs the official Hestia upgrade steps from the version in the volumes to 1.10.5;
+* fixes user and group IDs that changed with Debian 12;
+* moves the panel to the new `hestiaweb` user;
+* keeps sites on their current PHP version;
+* updates the Roundcube database schema.
+
+A backup of the configuration and the upgrade log are saved in `/root/hst_backups/`.
+
+**Back up `/conf`, `/home`, `/backup` and the MariaDB data before upgrading.** The first start after the upgrade takes a few minutes.
 
 
 ## Build your own image
@@ -38,6 +62,8 @@ Example:
 ./docker-helper image-build stable
 ```
 
+The command exits with a non-zero code when the build fails.
+
 ### Run image
 
 Start services using stable image:
@@ -50,15 +76,12 @@ Start services using another image:
 ./docker-helper image-up <image>
 ```
 
-Example:
-```bash
-./docker-helper image-up beta
-```
-
 ### Local Access
-Admin URL: https://hestiacp.localhost:8083  
+Admin URL: https://hestia.localhost:8083  
 Username:  admin  
 Password:  admin
+
+The local environment (`DOCKER_ENV=local`) sets `DEV_MODE=yes`, which uses fixed passwords.
 
 ### Push image
 
@@ -86,6 +109,25 @@ Push stable image with latest and version:
 * **/home-start** Data for initialize `/home`.
 
 
+## PHP versions
+
+| Version | Release |
+|---|---|
+| PHP 5.6 | 5.6.40 |
+| PHP 7.0 | 7.0.33 |
+| PHP 7.1 | 7.1.33 |
+| PHP 7.2 | 7.2.34 |
+| PHP 7.3 | 7.3.33 |
+| PHP 7.4 | 7.4.33 |
+| PHP 8.0 | 8.0.30 |
+| PHP 8.1 | 8.1.34 |
+| PHP 8.2 | 8.2.35 |
+| PHP 8.3 | 8.3.36 |
+| PHP 8.4 | 8.4.27 |
+| PHP 8.5 | 8.5.12 (default) |
+
+
+
 ## Variables
 
 ### General
@@ -96,18 +138,18 @@ Push stable image with latest and version:
 * **MAIL_ADMIN** Change mail from admin account in the first running.
 * **AUTOSTART_DISABLED** Disable services on container startup. Ex: "clamav-daemon,ssh,vsftpd".
 
-## Build
+### Build
 * **HESTIACP_REPOSITORY** Hestia project git that will be used in the build.
-* **MULTIPHP_VERSIONS** Defines the PHP versions that will be installed in the build.
-* **MARIADB_CLIENT_VERSION** Defines the version of the MariaDB client that will be installed.
+* **MULTIPHP_VERSIONS** Defines the PHP versions that will be installed in the build. Ex: `'"8.3" "8.4" "8.5"'`.
+* **MARIADB_CLIENT_VERSION** Defines the version of the MariaDB client that will be installed. Default: `10.11`. Keep it on the same version as the `mariadb` image in `docker-compose.yml`: MariaDB 11.4+ clients require TLS, which a 10.11 server does not provide.
+* **ZLIB_VERSION** Overrides the zlib version compiled into the Hestia packages.
 
 
 ## Known Issues
 
 ### Build terminating for no apparent reason
 
-Rerun the build with the `--no-cache` option. Ex: `./docker-helper image-build stable --no-cache`.  
-If that doesn't solve the problem, check the zlib version in the "hst_autocompile.sh". When a new version of zlib is released, the old one is removed from the official website causing an error when compiling. You can update the version by adding the variable "ZLIB_VERSION" in the .env in the project root or by updating in the hst_autocompile.sh.
+Rerun the build with the `--no-cache` option. Ex: `./docker-helper image-build stable --no-cache`.
 
 ### The data directory cannot be deleted
 
