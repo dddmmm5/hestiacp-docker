@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   hestiacp:
-    image: "dddmmm/hestiacp:1.10.5.1"
+    image: "dddmmm/hestiacp:1.10.5.2"
     #build: .
     container_name: "hestiacp"
     restart: "unless-stopped"
