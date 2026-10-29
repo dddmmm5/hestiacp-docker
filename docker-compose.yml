@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   hestiacp:
-    image: "dddmmm/hestiacp:1.8.11.7"
+    image: "dddmmm/hestiacp:1.10.5.1"
     #build: .
     container_name: "hestiacp"
     restart: "unless-stopped"
@@ -74,4 +74,4 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.50.0.0/16
+        - subnet: 172.52.0.0/16
