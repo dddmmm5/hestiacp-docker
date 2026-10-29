@@ -126,6 +126,18 @@ Push stable image with latest and version:
 | PHP 8.4 | 8.4.27 |
 | PHP 8.5 | 8.5.12 (default) |
 
+The control panel runs on its own PHP 8.5.12.
+
+
+## Security
+
+### PHP2Shell (CVE-2026-109618, CVE-2026-109619)
+
+Fixed in image `1.10.5.2`.
+
+* PHP 8.2–8.5 are the fixed releases: 8.2.35, 8.3.36, 8.4.27 and 8.5.12.
+* PHP 5.6–8.1 come from the [sury](https://deb.sury.org/) repository with the fixes backported (listed in each package changelog).
+* The control panel PHP (`hestia-php`) is built with PHP 8.5.12. Hestia 1.10.5 ships 8.5.10, which is affected, so the image overrides it with the `HESTIA_PHP_VERSION` build argument.
 
 
 ## Variables
@@ -143,6 +155,7 @@ Push stable image with latest and version:
 * **MULTIPHP_VERSIONS** Defines the PHP versions that will be installed in the build. Ex: `'"8.3" "8.4" "8.5"'`.
 * **MARIADB_CLIENT_VERSION** Defines the version of the MariaDB client that will be installed. Default: `10.11`. Keep it on the same version as the `mariadb` image in `docker-compose.yml`: MariaDB 11.4+ clients require TLS, which a 10.11 server does not provide.
 * **ZLIB_VERSION** Overrides the zlib version compiled into the Hestia packages.
+* **HESTIA_PHP_VERSION** PHP version of the control panel (`hestia-php`). Default: `8.5.12`.
 
 
 ## Known Issues
